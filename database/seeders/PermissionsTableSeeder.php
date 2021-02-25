@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Permission;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class PermissionsTableSeeder extends Seeder
 {
@@ -231,8 +232,8 @@ class PermissionsTableSeeder extends Seeder
                 'title' => 'profile_password_edit',
             ],
         ];
-        Permission::unprepared('SET IDENTITY_INSERT test_table ON');
+        DB::unprepared('SET IDENTITY_INSERT test_table ON');
         Permission::insert($permissions);
-        Permission::unprepared('SET IDENTITY_INSERT test_table OFF');
+        DB::unprepared('SET IDENTITY_INSERT test_table OFF');
     }
 }

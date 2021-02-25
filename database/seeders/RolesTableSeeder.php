@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Role;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class RolesTableSeeder extends Seeder
 {
@@ -19,8 +20,8 @@ class RolesTableSeeder extends Seeder
                 'title' => 'User',
             ],
         ];
-        Role::unprepared('SET IDENTITY_INSERT test_table ON');
+        DB::unprepared('SET IDENTITY_INSERT test_table ON');
         Role::insert($roles);
-        Role::unprepared('SET IDENTITY_INSERT test_table OFF');
+        DB::unprepared('SET IDENTITY_INSERT test_table OFF');
     }
 }
