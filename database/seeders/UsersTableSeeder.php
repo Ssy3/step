@@ -18,8 +18,8 @@ class UsersTableSeeder extends Seeder
                 'remember_token' => null,
             ],
         ];
-        DB::unprepared('SET IDENTITY_INSERT test_table ON');
+        User::unprepared('SET IDENTITY_INSERT test_table ON');
         User::insert($users);
-        DB::unprepared('SET IDENTITY_INSERT test_table OFF');
+        User::unprepared('SET IDENTITY_INSERT test_table OFF');
     }
 }
