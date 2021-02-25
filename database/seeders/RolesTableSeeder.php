@@ -19,7 +19,8 @@ class RolesTableSeeder extends Seeder
                 'title' => 'User',
             ],
         ];
-
+        DB::unprepared('SET IDENTITY_INSERT test_table ON');
         Role::insert($roles);
+        DB::unprepared('SET IDENTITY_INSERT test_table OFF');
     }
 }
