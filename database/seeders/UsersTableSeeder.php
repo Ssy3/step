@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 
 class UsersTableSeeder extends Seeder
 {
@@ -19,8 +18,7 @@ class UsersTableSeeder extends Seeder
                 'remember_token' => null,
             ],
         ];
-        DB::unprepared('SET IDENTITY_INSERT users ON');
+
         User::insert($users);
-        DB::unprepared('SET IDENTITY_INSERT users OFF');
     }
 }
