@@ -9,6 +9,11 @@ use App\Http\Requests\MassDestroyStrategicPlanRequest;
 use App\Http\Requests\StoreStrategicPlanRequest;
 use App\Http\Requests\UpdateStrategicPlanRequest;
 use App\Models\StrategicPlan;
+use App\Models\Goal;
+use App\Models\Project;
+use App\Models\Initiative;
+use App\Models\Risk;
+use App\Models\ActionPlan;
 use Gate;
 use Illuminate\Http\Request;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -34,12 +39,14 @@ class StrategicPlansController extends Controller
                 $viewGate      = 'strategic_plan_show';
                 $editGate      = 'strategic_plan_edit';
                 $deleteGate    = 'strategic_plan_delete';
+                $archiveGate   = 'strategic_plan_archive';
                 $crudRoutePart = 'strategic-plans';
 
                 return view('partials.datatablesActions', compact(
                     'viewGate',
                     'editGate',
                     'deleteGate',
+                    'archiveGate',
                     'crudRoutePart',
                     'row'
                 ));
@@ -129,5 +136,51 @@ class StrategicPlansController extends Controller
         $media         = $model->addMediaFromRequest('upload')->toMediaCollection('ck-media');
 
         return response()->json(['id' => $media->id, 'url' => $media->getUrl()], Response::HTTP_CREATED);
+    }
+
+    public function archive (StrategicPlan $strategicPlan){
+
+      abort_if(Gate::denies('strategic_plan_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+      $goals = $strategicPlan->load('strategicPlanGoals');
+
+      foreach ($goals->strategicPlanGoals as $key => $index){
+        $goal_id = $index->id;
+        $goal = Goal::findOrFail($goal_id);
+        $projects = $goal->load('goalProjects');
+
+        foreach ($projects->goalProjects as $key => $index){
+          $project_id = $index->id;
+          $project = Project::findOrFail($project_id);
+            $initiatives = $project->load('projectInitiatives');
+
+            foreach ($initiatives->projectInitiatives as $key => $index){
+              $initiative_id = $index->id;
+              $initiative = Initiative::findOrFail($initiative_id);
+
+                $risks = $initiative->load('initiativeRisks');
+                $action_plans = $initiative->load('initiativeActionPlans');
+                foreach ($risks->initiativeRisks as $key => $index){
+                  $risk_id = $index->id;
+                  $risk = Risk::findOrFail($risk_id);
+                  $risk->archive();
+                }
+
+                foreach ($action_plans->initiativeActionPlans as $key => $index){
+                  $action_plan_id = $index->id;
+                  $action_plan = ActionPlan::findOrFail($action_plan_id);
+                  $action_plan->archive();
+                }
+
+              $initiative->archive();
+            }
+
+          $project->archive();
+        }
+
+        $goal->archive();
+      }
+
+      $strategicPlan->archive();
+      return back();
     }
 }

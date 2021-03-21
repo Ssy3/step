@@ -15,3 +15,8 @@
         <input type="submit" class="btn btn-xs btn-danger" value="{{ trans('global.delete') }}">
     </form>
 @endcan
+@if(isset($archiveGate))
+    <a class="btn btn-xs btn-warning" href="{{ route('admin.' . $crudRoutePart . '.archive', $row->id) }}">
+        {{ trans('global.archive') }}
+    </a>
+@endif
