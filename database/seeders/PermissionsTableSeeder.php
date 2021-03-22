@@ -231,6 +231,10 @@ class PermissionsTableSeeder extends Seeder
                 'id'    => 55,
                 'title' => 'profile_password_edit',
             ],
+            [
+                'id'    => 56,
+                'title' => 'strategic_plan_archive',
+            ],
         ];
         DB::unprepared('SET IDENTITY_INSERT permissions ON');
         Permission::insert($permissions);
