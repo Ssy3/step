@@ -67,6 +67,45 @@ class StrategicPlansController extends Controller
         return view('admin.strategicPlans.index');
     }
 
+    public function archiveList(Request $request)
+    {
+        abort_if(Gate::denies('strategic_plan_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        if ($request->ajax()) {
+
+            $query = StrategicPlan::select(sprintf('%s.*', (new StrategicPlan)->table))->onlyArchived();
+            $table = Datatables::of($query);
+
+            $table->addColumn('placeholder', '&nbsp;');
+            $table->addColumn('actions', '&nbsp;');
+
+            $table->editColumn('actions', function ($row) {
+                //$viewGate      = 'strategic_plan_show';
+                $restoreGate   = 'strategic_plan_restore';
+                $crudRoutePart = 'strategic-plans';
+
+                return view('partials.datatablesActions', compact(
+                    //'viewGate',
+                    'restoreGate',
+                    'crudRoutePart',
+                    'row'
+                ));
+            });
+
+            $table->editColumn('id', function ($row) {
+                return $row->id ? $row->id : "";
+            });
+            $table->editColumn('name', function ($row) {
+                return $row->name ? $row->name : "";
+            });
+
+            $table->rawColumns(['actions', 'placeholder']);
+
+            return $table->make(true);
+        }
+
+        return view('admin.strategicPlans.archive');
+    }
+
     public function create()
     {
         abort_if(Gate::denies('strategic_plan_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
@@ -181,6 +220,54 @@ class StrategicPlansController extends Controller
       }
 
       $strategicPlan->archive();
+      return back();
+    }
+
+    public function restore ($strategic_plan_id){
+
+      abort_if(Gate::denies('strategic_plan_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+      $strategicPlan = StrategicPlan::onlyArchived()->find($strategic_plan_id);
+
+      $goals = Goal::onlyArchived()->where('strategic_plan_id','=',$strategic_plan_id)->get();
+
+      foreach ($goals as $key => $index){
+        $goal_id = $index->id;
+        $goal = Goal::onlyArchived()->find($goal_id);
+        $projects = Project::onlyArchived()->where('goal_id','=',$goal_id)->get();
+
+        foreach ($projects as $key => $index){
+          $project_id = $index->id;
+          $project = Project::onlyArchived()->find($project_id);
+          $initiatives = Initiative::onlyArchived()->where('project_id','=',$project_id)->get();
+
+          foreach ($initiatives as $key => $index){
+            $initiative_id = $index->id;
+            $initiative = Initiative::onlyArchived()->find($initiative_id);
+
+            $risks = Risk::onlyArchived()->where('initiative_id','=',$initiative_id)->get();
+            $action_plans = ActionPlan::onlyArchived()->where('initiative_id','=',$initiative_id)->get();
+            foreach ($risks as $key => $index){
+              $risk_id = $index->id;
+              $risk = Risk::onlyArchived()->find($risk_id);
+              $risk->unarchive();
+            }
+
+            foreach ($action_plans as $key => $index){
+              $action_plan_id = $index->id;
+              $action_plan = ActionPlan::onlyArchived()->find($action_plan_id);
+              $action_plan->unarchive();
+            }
+
+            $initiative->unarchive();
+          }
+
+          $project->unarchive();
+        }
+
+        $goal->unarchive();
+      }
+
+      $strategicPlan->unarchive();
       return back();
     }
 }
